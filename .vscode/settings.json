@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.scss": "scss",
+        "chrono": "cpp",
+        "xlocale": "cpp"
+    }
+}

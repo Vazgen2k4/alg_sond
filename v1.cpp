@@ -35,6 +35,10 @@ int main(int argc, char const* argv[]) {
   vector<pair<int, int>> precounted_sonds_sums;
   read_input(data, values_sonds);
 
+  rec_result res = back_tracking(data, values_sonds);
+
+  cout << get<0>(res) << " " << get<1>(res) << " " << get<2>(res) << endl;
+
   return 0;
 }
 #endif
@@ -71,6 +75,5 @@ void read_input(matrix_data& data, vector<int>& values_sonds, istream& in) {
 }
 
 rec_result back_tracking(matrix_data& data, vector<int>& values_sonds) {
-  
   return rec_result(19, 19, 19);
 }

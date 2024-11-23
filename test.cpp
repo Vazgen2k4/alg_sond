@@ -20,7 +20,6 @@ int main() {
   return 0;
 }
 
-
 void test(const std::string &input_file, const std::string &expect_file,
           std::ostream &out = cout) {
   std::ifstream input(input_file);
@@ -33,23 +32,31 @@ void test(const std::string &input_file, const std::string &expect_file,
   }
 
   matrix_data data;
-  vector<int> values_sonds;
+  otladka coord = {};
+  // vector<vector<int>> status(data.rows, vector<int>(data.cols, EMPTY));
 
-  read_input(data, values_sonds, input);
+  read_input(data, input);
 
   int a, b, c;
   expected_output >> a >> b >> c;
 
-  auto [a_res, b_res, c_res] = back_tracking(data, values_sonds);
+  auto [a_res, b_res, c_res] = back_tracking(data, coord);
 
   if (a == a_res && b == b_res && c == c_res) {
     out << "Test passed!" << endl;
   } else {
     out << "Test failed!" << endl;
+    out << "Input: " << endl;
 
-    out << "Input: " << "" << endl;
-    out << "Expected Output: " << a << b << c << endl;
-    out << "Output: " << a_res << b_res << c_res << endl;
+    print_matrix(data, out);
+
+    out << "Expected Output: " << a << " " << b << " " << c << endl;
+    out << "Output: " << a_res << " " << b_res << " " << c_res << endl;
+
+    for (auto &[key, val] : coord) {
+      out << "Вышка №<" << key << ">: (" << val.second.first << ", "
+          << val.second.second << "), дальность: " << val.first << endl;
+    }
   }
   out << "------------------------------------------------------" << endl;
 

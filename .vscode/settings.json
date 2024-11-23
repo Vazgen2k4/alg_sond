@@ -2,6 +2,8 @@
     "files.associations": {
         "*.scss": "scss",
         "chrono": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "utility": "cpp",
+        "iosfwd": "cpp"
     }
 }

@@ -7,9 +7,9 @@ Matrix:
 1 2 3 
 2
 1 1 
-Expected Output: 7 16 0
-Output: 8 19 5
-Sond №1: radius=[1], cords=(y:1, x:2)
-Sond №2: radius=[1], cords=(y:1, x:2)
+Expected Output: 7 16 5
+Output: 7 15 5
+Sond №1: radius=[1], cords=(y:0, x:2)
+Sond №2: radius=[1], cords=(y:2, x:1)
 
 ------------------------------------------------------

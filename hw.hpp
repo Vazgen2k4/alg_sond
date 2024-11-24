@@ -58,4 +58,9 @@ class MatrixData {
   bool isWithinBounds(int coord, int maxSize);
   bool isWithinEuclideanRadius(int dx, int dy, int radius);
   bool isBlocked(Coord curent, Coord next);
+
+  void positionProcessing(Coord coord, Sond& sond,
+                          function<void(int, int)> onComplete);
+                          
+  bool isPositionBetter(Coord covering, Coord sums, Coord sondSums);
 };

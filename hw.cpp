@@ -35,85 +35,104 @@ BacktrackResult MatrixData::backtrack(int depth) {
     if (coordinates.empty()) continue;
 
     for (auto& [y, x] : coordinates) {
-      // если на текущей клетке зонд, пропускаем клетку
+      // Если на текущей клетке уже есть зонд, пропускаем
       if (coatedMatrix[y][x] == SOND) continue;
 
-      coatedMatrix[y][x] = SOND;
       vector<Coord> coveredCells;
-      int heightSum = matrix[y][x];
+      int heightSum = height;
       coveredCells.emplace_back(y, x);
 
-      // Обработка клеток в радиусе зонда
-      for (int dy = -sond.radius; dy <= sond.radius; dy++) {
-        int ny = y + dy;
+      positionProcessing({y, x}, sond, [&](int ny, int nx) {
+        heightSum += matrix[ny][nx];
+        coatedMatrix[ny][nx] = COVERED;
+        coveredCells.emplace_back(ny, nx);
+      });
 
-        if (!isWithinBounds(ny, rows)) continue;
+      coatedMatrix[y][x] = SOND;
 
-        for (int dx = -sond.radius; dx <= sond.radius; dx++) {
-          int nx = x + dx;
-
-          if (!isWithinBounds(nx, cols) ||
-              !isWithinEuclideanRadius(dx, dy, sond.radius) ||
-              (nx == x && ny == y) || coatedMatrix[ny][nx] != EMPTY)
-            continue;
-
-          auto [step_y, step_x] = calculateSteps({dy, dx});
-
-          int next_x = nx + step_x;
-          int next_y = ny + step_y;
-
-          bool next_is_sond = next_x == x && next_y == y;
-          bool blocked = isBlocked({ny, nx}, {next_y, next_x});
-
-          if (!next_is_sond && blocked) {
-            continue;
-          }
-
-          heightSum += matrix[ny][nx];
-          coatedMatrix[ny][nx] = COVERED;
-          coveredCells.emplace_back(ny, nx);
-        }
-      }
-
-      // Рекурсивный вызов
       auto [subCovered, subHeightSum, subSondHeight] = backtrack(depth + 1);
 
-      // Текущие результаты после рекурсии
       int currentCovered = coveredCells.size() + subCovered;
       int currentHeightSum = heightSum + subHeightSum;
       int currentSondSum = height + subSondHeight;
 
-      // Обновляем координаты и параметры, если текущий вариант лучший
-      if (currentCovered > maxCovered ||
-          (currentCovered == maxCovered && currentHeightSum > maxSum) ||
-          (currentCovered == maxCovered && currentHeightSum == maxSum &&
-           currentSondSum < minSondHeightSum)) {
+      bool isBetter = isPositionBetter({currentCovered, maxCovered},
+                                       {currentHeightSum, maxSum},
+                                       {currentSondSum, minSondHeightSum});
+
+      if (isBetter) {
         maxCovered = currentCovered;
         maxSum = currentHeightSum;
         minSondHeightSum = currentSondSum;
 
         sond.x = x;
         sond.y = y;
-
-        cout << "Зонд [" << &sond << "] обновлен: (y:" << y << ", x:" << x
-             << ")" << endl;
-
-        cout << "Текущие данные: (" << maxCovered << ", " << maxSum << ", "
-             << minSondHeightSum << ")\n";
-        cout << "Лучшие покрытые клетки для зонда: " << endl;
+        
+        printMatrix(coatedMatrix);
         for (auto& [cy, cx] : coveredCells) {
-          cout << "(y:" << cy << ", x:" << cx << ") ";
+          cout << "(y:" << cy<< ", x:" << cx << ") " << endl; 
         }
         cout << endl << "----------------------------------------" << endl;
-      }
+      } 
 
+      // Восстановление только покрытых клеток
       for (auto& [cy, cx] : coveredCells) {
         coatedMatrix[cy][cx] = EMPTY;
       }
+      // Оставляем текущую точку помеченной как EMPTY
+      coatedMatrix[y][x] = EMPTY;
     }
   }
 
   return {maxCovered, maxSum, minSondHeightSum};
+}
+
+void MatrixData::positionProcessing(Coord coord, Sond& sond,
+                                    function<void(int, int)> onComplete) {
+  auto& [y, x] = coord;
+
+  for (int dy = -sond.radius; dy <= sond.radius; dy++) {
+    int ny = y + dy;
+
+    if (!isWithinBounds(ny, rows)) continue;
+
+    for (int dx = -sond.radius; dx <= sond.radius; dx++) {
+      int nx = x + dx;
+
+      if (!isWithinBounds(nx, cols) ||
+          !isWithinEuclideanRadius(dx, dy, sond.radius) ||
+          (nx == x && ny == y)) {
+        continue;
+      }
+
+      // auto [step_y, step_x] = calculateSteps({dy, dx});
+
+      // int next_x = nx + step_x;
+      // int next_y = ny + step_y;
+
+      // bool next_is_sond = next_x == x && next_y == y;
+      // bool blocked = isBlocked({ny, nx}, {next_y, next_x});
+
+      // if (!next_is_sond && blocked) {
+      //   continue;
+      // }
+
+      if (coatedMatrix[ny][nx] == EMPTY) {  // Условие перекрытия
+        onComplete(ny, nx);
+      }
+    }
+  }
+}
+
+bool MatrixData::isPositionBetter(Coord covering, Coord sums, Coord sondSums) {
+  auto [currentCovered, maxCovered] = covering;
+  auto [currentHeightSum, maxSum] = sums;
+  auto [currentSondSum, minSondHeightSum] = sondSums;
+
+  return currentCovered > maxCovered ||
+         (currentCovered == maxCovered && currentHeightSum > maxSum) ||
+         (currentCovered == maxCovered && currentHeightSum == maxSum &&
+          currentSondSum < minSondHeightSum);
 }
 
 void MatrixData::printSonds(ostream& out) {

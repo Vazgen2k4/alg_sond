@@ -1,15 +1,26 @@
 {
     "tasks": [
         {
+            "label": "Clear Terminal",
+            "type": "shell",
+            "command": "cls",
+            "problemMatcher": []
+        },
+        {
             "type": "cppbuild",
             "label": "Vazgen Test",
             "command": "V:\\program\\msys_64\\mingw64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
+                "-DTEST",
                 "test.cpp",
+                "hw.cpp",
                 "-o",
                 "${fileDirname}\\test.exe"
+            ],
+            "dependsOn":[
+                "Clear Terminal"
             ],
             "options": {
                 "cwd": "${fileDirname}"

@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 
-#define TEST
-#include "v1.cpp"
+// #define TEST
+#include "hw.hpp"
 
 namespace fs = std::filesystem;
 void test(const std::string &input_file, const std::string &expect_file,
@@ -31,16 +31,14 @@ void test(const std::string &input_file, const std::string &expect_file,
     return;
   }
 
-  matrix_data data;
-  otladka coord = {};
-  // vector<vector<int>> status(data.rows, vector<int>(data.cols, EMPTY));
-
-  read_input(data, input);
+  MatrixData data;
+  data.readInput(input);
+  // read_input(data, input);
 
   int a, b, c;
   expected_output >> a >> b >> c;
 
-  auto [a_res, b_res, c_res] = back_tracking(data, coord);
+  auto [a_res, b_res, c_res] = data.backtrack();
 
   if (a == a_res && b == b_res && c == c_res) {
     out << "Test passed!" << endl;
@@ -48,15 +46,12 @@ void test(const std::string &input_file, const std::string &expect_file,
     out << "Test failed!" << endl;
     out << "Input: " << endl;
 
-    print_matrix(data, out);
+    data.printMatrixData(out);
 
     out << "Expected Output: " << a << " " << b << " " << c << endl;
     out << "Output: " << a_res << " " << b_res << " " << c_res << endl;
 
-    for (auto &[key, val] : coord) {
-      out << "Вышка №<" << key << ">: (" << val.second.first << ", "
-          << val.second.second << "), дальность: " << val.first << endl;
-    }
+    data.printSonds(out);
   }
   out << "------------------------------------------------------" << endl;
 

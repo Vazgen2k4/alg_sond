@@ -62,5 +62,5 @@ class MatrixData {
   void positionProcessing(Coord coord, Sond& sond,
                           function<void(int, int)> onComplete);
                           
-  bool isPositionBetter(Coord covering, Coord sums, Coord sondSums);
+  // bool isPositionBetter(Coord covering, Coord sums, Coord sondSums);
 };

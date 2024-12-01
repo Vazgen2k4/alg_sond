@@ -19,14 +19,14 @@ int main(int argc, char const* argv[]) {
 #endif
 
 BacktrackResult MatrixData::backtrack(int depth) {
+  BacktrackResult res = {0, 0, 0};
+
   if (depth == sondsList.size()) {
-    return make_tuple(0, 0, 0);
+    return res;
   }
 
   auto& sond = sondsList[depth];
-  int maxCovered = 0;
-  int maxSum = 0;
-  int minSondHeightSum = numeric_limits<int>::max();
+  auto& [maxCovered, maxSum, minSondHeightSum] = res;
 
   for (auto it = coordsMap.rbegin(); it != coordsMap.rend(); ++it) {
     auto height = it->first;
@@ -36,11 +36,18 @@ BacktrackResult MatrixData::backtrack(int depth) {
 
     for (auto& [y, x] : coordinates) {
       // Если на текущей клетке уже есть зонд, пропускаем
-      if (coatedMatrix[y][x] == SOND) continue;
+
+      auto previusSondType = cell_state(coatedMatrix[y][x]);
+
+      if (previusSondType == SOND) continue;
 
       vector<Coord> coveredCells;
-      int heightSum = height;
-      coveredCells.emplace_back(y, x);
+      int heightSum = 0;
+
+      if (previusSondType == EMPTY) {
+        coveredCells.emplace_back(y, x);
+        heightSum += height;
+      }
 
       positionProcessing({y, x}, sond, [&](int ny, int nx) {
         heightSum += matrix[ny][nx];
@@ -56,35 +63,32 @@ BacktrackResult MatrixData::backtrack(int depth) {
       int currentHeightSum = heightSum + subHeightSum;
       int currentSondSum = height + subSondHeight;
 
-      bool isBetter = isPositionBetter({currentCovered, maxCovered},
-                                       {currentHeightSum, maxSum},
-                                       {currentSondSum, minSondHeightSum});
+      bool isBetter =
+          currentCovered > maxCovered ||
+          (currentCovered == maxCovered && currentHeightSum > maxSum) ||
+          (currentCovered == maxCovered && currentHeightSum == maxSum &&
+           currentSondSum < minSondHeightSum);
 
       if (isBetter) {
-        maxCovered = currentCovered;
-        maxSum = currentHeightSum;
-        minSondHeightSum = currentSondSum;
+        res = {currentCovered, currentHeightSum, currentSondSum};
 
         sond.x = x;
         sond.y = y;
-        
-        printMatrix(coatedMatrix);
-        for (auto& [cy, cx] : coveredCells) {
-          cout << "(y:" << cy<< ", x:" << cx << ") " << endl; 
-        }
-        cout << endl << "----------------------------------------" << endl;
-      } 
+      }
 
-      // Восстановление только покрытых клеток
+      // // Восстановление только покрытых клеток
       for (auto& [cy, cx] : coveredCells) {
         coatedMatrix[cy][cx] = EMPTY;
       }
+
+      coveredCells.clear();
+
       // Оставляем текущую точку помеченной как EMPTY
-      coatedMatrix[y][x] = EMPTY;
+      coatedMatrix[y][x] = previusSondType;
     }
   }
 
-  return {maxCovered, maxSum, minSondHeightSum};
+  return res;
 }
 
 void MatrixData::positionProcessing(Coord coord, Sond& sond,
@@ -105,17 +109,17 @@ void MatrixData::positionProcessing(Coord coord, Sond& sond,
         continue;
       }
 
-      // auto [step_y, step_x] = calculateSteps({dy, dx});
+      auto [step_y, step_x] = calculateSteps({dy, dx});
 
-      // int next_x = nx + step_x;
-      // int next_y = ny + step_y;
+      int next_x = nx + step_x;
+      int next_y = ny + step_y;
 
-      // bool next_is_sond = next_x == x && next_y == y;
-      // bool blocked = isBlocked({ny, nx}, {next_y, next_x});
+      bool next_is_sond = next_x == x && next_y == y;
+      bool blocked = isBlocked({ny, nx}, {next_y, next_x});
 
-      // if (!next_is_sond && blocked) {
-      //   continue;
-      // }
+      if (!next_is_sond && blocked) {
+        continue;
+      }
 
       if (coatedMatrix[ny][nx] == EMPTY) {  // Условие перекрытия
         onComplete(ny, nx);
@@ -124,16 +128,6 @@ void MatrixData::positionProcessing(Coord coord, Sond& sond,
   }
 }
 
-bool MatrixData::isPositionBetter(Coord covering, Coord sums, Coord sondSums) {
-  auto [currentCovered, maxCovered] = covering;
-  auto [currentHeightSum, maxSum] = sums;
-  auto [currentSondSum, minSondHeightSum] = sondSums;
-
-  return currentCovered > maxCovered ||
-         (currentCovered == maxCovered && currentHeightSum > maxSum) ||
-         (currentCovered == maxCovered && currentHeightSum == maxSum &&
-          currentSondSum < minSondHeightSum);
-}
 
 void MatrixData::printSonds(ostream& out) {
   int i = 0;
